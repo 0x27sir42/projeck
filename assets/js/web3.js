@@ -1,27 +1,68 @@
-let provider,signer,user;
+/* =========================
+   ZILA UNIVERSAL WALLET CORE
+   SUPPORT ALL EVM WALLETS
+========================= */
 
-async function connectWallet(){
- if(!window.ethereum) return alert("Wallet required");
- await ethereum.request({method:"eth_requestAccounts"});
- await ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:CHAIN_ID}]});
- provider=new ethers.providers.Web3Provider(window.ethereum);
- signer=provider.getSigner();
- user=await signer.getAddress();
+const DEBUG = true;
+function log(...a){ if(DEBUG) console.log("🟢 WALLET:",...a); }
+function err(...a){ console.error("🔴 WALLET ERROR:",...a); }
 
- if(isBanned(user)) return alert("ACCESS DENIED");
+window.provider = null;
+window.signer = null;
+window.user = null;
 
- await signer.signMessage("ZILA AUTH");
+/* ===== GLOBAL CONNECT WALLET ===== */
+window.connectWallet = async function () {
+  log("Connect triggered");
 
- connectBtn.innerText=user.slice(0,6)+"..."+user.slice(-4);
- walletHUD.innerText="👁 "+user;
-}
-async function buyZila(){
- if(!user) return alert("Connect wallet");
- let v=buyAmount.value;
- const c=new ethers.Contract(PRESALE_ADDRESS,presaleABI,signer);
- await (await c.buy({value:ethers.utils.parseEther(v)})).wait();
+  if (!window.ethereum) {
+    alert("❌ No Web3 wallet detected.\nUse MetaMask / Trust / OKX / Rabby / Brave");
+    return;
+  }
 
- let s=JSON.parse(localStorage.getItem("zila_sales")||"[]");
- s.push({wallet:user,amount:v});
- localStorage.setItem("zila_sales",JSON.stringify(s));
-}
+  try {
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts"
+    });
+
+    if (!accounts || !accounts.length) {
+      alert("❌ Wallet rejected");
+      return;
+    }
+
+    provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    signer = provider.getSigner();
+    user = await signer.getAddress();
+
+    log("Connected address:", user);
+
+    const network = await provider.getNetwork();
+    log("Chain ID:", network.chainId);
+
+    // UI UPDATE
+    const btn = document.getElementById("connectBtn");
+    const hud = document.getElementById("walletStatus");
+
+    if (btn) btn.innerText = user.slice(0,6) + "..." + user.slice(-4);
+    if (hud) hud.innerHTML = "🟢 Connected<br><b>" + user + "</b>";
+
+    if (typeof loadStats === "function") loadStats();
+
+    log("Wallet connected SUCCESS");
+
+  } catch (e) {
+    err(e);
+    alert("❌ Wallet connection failed.\nCheck console.");
+  }
+};
+
+/* ===== AUTO RECONNECT ===== */
+window.addEventListener("load", async () => {
+  if (!window.ethereum) return;
+
+  const acc = await ethereum.request({ method: "eth_accounts" });
+  if (acc.length) {
+    log("Auto reconnect");
+    window.connectWallet();
+  }
+});
