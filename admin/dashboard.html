@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZILA Admin Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:radial-gradient(circle at top,#2b5876,#0b0f14 65%);
+  color:#fff;
+}
+.header{
+  padding:20px;
+  background:rgba(10,15,20,.85);
+  backdrop-filter:blur(10px);
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+}
+.container{
+  max-width:600px;
+  margin:auto;
+  padding:30px;
+}
+.card{
+  background:rgba(20,30,40,.8);
+  backdrop-filter:blur(14px);
+  border-radius:20px;
+  padding:26px;
+  margin-bottom:30px;
+  box-shadow:0 20px 50px rgba(0,0,0,.45);
+}
+button{
+  width:100%;
+  padding:14px;
+  margin-top:14px;
+  border:none;
+  border-radius:14px;
+  background:#00ff9c;
+  font-weight:bold;
+  cursor:pointer;
+}
+input{
+  width:100%;
+  padding:14px;
+  margin-top:14px;
+  border-radius:14px;
+  border:none;
+}
+.status{
+  margin-top:12px;
+  font-size:13px;
+  color:#00ff9c;
+}
+.danger{
+  background:#ff4d4d;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  🔐 ZILA ADMIN DASHBOARD
+</div>
+
+<div class="container">
+
+<!-- CONNECT -->
+<div class="card">
+  <h3>Wallet</h3>
+  <button onclick="connectWallet()">Connect Owner Wallet</button>
+  <div class="status" id="walletStatus"></div>
+</div>
+
+<!-- STATS -->
+<div class="card">
+  <h3>Presale Stats</h3>
+  <button onclick="loadStats()">Load Stats</button>
+  <div class="status" id="stats"></div>
+</div>
+
+<!-- SET TGE -->
+<div class="card">
+  <h3>Set TGE Time</h3>
+  <input id="tgeTime" placeholder="Unix timestamp (example: 1735689600)">
+  <button onclick="setTGE()">Set TGE</button>
+  <div class="status" id="tgeStatus"></div>
+</div>
+
+<!-- WITHDRAW POL -->
+<div class="card">
+  <h3>Withdraw POL</h3>
+  <button class="danger" onclick="withdrawPOL()">Withdraw All POL</button>
+  <div class="status" id="withdrawStatus"></div>
+</div>
+
+</div>
+
+<script>
+let provider, signer, user;
+
+// ===== ADDRESS =====
+const PRESALE_ADDRESS = "PASTE_PRESALE_ADDRESS_HERE";
+
+// ===== ABI PRESALE =====
+const presaleABI = [
+  "function withdrawPOL() external",
+  "function tgeTime() view returns(uint256)",
+  "function users(address) view returns(uint256 totalBought,uint256 claimed)"
+];
+
+// ===== CONNECT OWNER =====
+async function connectWallet(){
+  if(!window.ethereum) return alert("Install wallet");
+  await ethereum.request({method:"eth_requestAccounts"});
+  await ethereum.request({
+    method:"wallet_switchEthereumChain",
+    params:[{chainId:"0x89"}]
+  });
+  provider = new ethers.providers.Web3Provider(ethereum);
+  signer = provider.getSigner();
+  user = await signer.getAddress();
+  walletStatus.innerText = "Connected: " +
+    user.slice(0,4)+"***"+user.slice(-4);
+}
+
+// ===== LOAD STATS =====
+async function loadStats(){
+  if(!signer) return alert("Connect wallet");
+  const c = new ethers.Contract(PRESALE_ADDRESS, presaleABI, signer);
+  const balance = await provider.getBalance(PRESALE_ADDRESS);
+  const tge = await c.tgeTime();
+
+  stats.innerText =
+    "POL Balance: " + ethers.utils.formatEther(balance) + " POL\n" +
+    "TGE Time: " + (tge==0 ? "Not set" : new Date(tge*1000).toUTCString());
+}
+
+// ===== SET TGE =====
+async function setTGE(){
+  const time = tgeTime.value;
+  if(!time) return alert("Input timestamp");
+  const c = new ethers.Contract(PRESALE_ADDRESS, presaleABI, signer);
+  tgeStatus.innerText = "Setting TGE...";
+  const tx = await c.setTGE(time);
+  await tx.wait();
+  tgeStatus.innerText = "TGE set successfully";
+}
+
+// ===== WITHDRAW POL =====
+async function withdrawPOL(){
+  if(!confirm("Withdraw all POL to owner wallet?")) return;
+  const c = new ethers.Contract(PRESALE_ADDRESS, presaleABI, signer);
+  withdrawStatus.innerText = "Withdrawing...";
+  const tx = await c.withdrawPOL();
+  await tx.wait();
+  withdrawStatus.innerText = "Withdraw success";
+}
+</script>
+
+</body>
+</html>
