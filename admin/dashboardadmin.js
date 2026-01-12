@@ -1,88 +1,92 @@
 let provider, signer, admin;
 
-/* ===== CONFIG ===== */
-const OWNER = "ISI_OWNER_WALLET_KAMU_DI_SINI".toLowerCase();
-
+/* ===== CONTRACT ADDRESSES ===== */
 const PRESALE = "0x72cF8781aa3A6D7FD3324CD0dAA8b858461849d7";
-const STAKING = "0xef1CC2A23c0023093C545044d9f7154863715a27";
 
-/* ===== ABI ===== */
+/* ===== ABI (ADMIN FUNCTIONS) ===== */
 const presaleABI = [
-  "function withdrawPOL() external",
-  "function tgeTime() view returns(uint256)",
-  "function users(address) view returns(uint256 totalBought,uint256 claimed)",
-  "function setTGE(uint256 _time)"
-];
-
-const stakingABI = [
-  "function stakes(address) view returns(uint256 amount,uint256 start,uint256 lock,uint256 apy,uint256 claimed)",
-  "function pendingReward(address) view returns(uint256)"
+  "function setTGE(uint256)",
+  "function withdrawPOL()",
+  "function totalRaised() view returns(uint256)"
 ];
 
 /* ===== CONNECT ADMIN ===== */
 async function connectAdmin(){
-  if(!window.ethereum) return alert("Wallet not found");
-
-  await ethereum.request({method:"eth_requestAccounts"});
-  await ethereum.request({
-    method:"wallet_switchEthereumChain",
-    params:[{chainId:"0x89"}]
-  });
-
-  provider = new ethers.providers.Web3Provider(ethereum);
-  signer = provider.getSigner();
-  admin = (await signer.getAddress()).toLowerCase();
-
-  if(admin !== OWNER){
-    document.body.innerHTML = "<h1 style='color:red;text-align:center'>ACCESS DENIED</h1>";
-    throw new Error("Unauthorized");
+  if(!window.ethereum){
+    alert("Wallet not detected");
+    return;
   }
 
-  adminStatus.innerText = "Admin connected: " +
-    admin.slice(0,4)+"***"+admin.slice(-4);
+  try{
+    const accounts = await ethereum.request({
+      method: "eth_requestAccounts"
+    });
+
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+    admin = accounts[0];
+
+    // SIGN MESSAGE (SECURITY)
+    const message = "ZILA ADMIN AUTHORIZATION";
+    const signature = await signer.signMessage(message);
+
+    document.getElementById("adminStatus").innerText = "Admin connected";
+    document.getElementById("adminAddress").innerText =
+      "Wallet: " + admin;
+    document.getElementById("adminSignature").innerText =
+      "Signature: " + signature.slice(0,40) + "...";
+
+  }catch(err){
+    console.error(err);
+    document.getElementById("adminStatus").innerText =
+      "Connection rejected";
+  }
 }
 
-/* ===== PRESALE STATS ===== */
+/* ===== LOAD PRESALE STATS ===== */
 async function loadPresaleStats(){
-  const c = new ethers.Contract(PRESALE, presaleABI, signer);
-  const bal = await provider.getBalance(PRESALE);
-  const tge = await c.tgeTime();
+  if(!admin) return alert("Connect admin wallet first");
 
-  presaleStats.innerText =
-    "POL Balance: " + ethers.utils.formatEther(bal) + " POL\n" +
-    "TGE: " + (tge==0 ? "Not set" : new Date(tge*1000).toUTCString());
+  const c = new ethers.Contract(PRESALE, presaleABI, provider);
+  const raised = await c.totalRaised();
+
+  document.getElementById("presaleStats").innerText =
+    "Total Raised: " + ethers.utils.formatEther(raised) + " POL";
 }
 
 /* ===== SET TGE ===== */
 async function setTGE(){
-  const time = tgeInput.value;
-  if(!time) return alert("Input timestamp");
+  if(!admin) return alert("Connect admin wallet first");
+
+  const tge = document.getElementById("tgeInput").value;
+  if(!tge) return alert("Input TGE timestamp");
+
   const c = new ethers.Contract(PRESALE, presaleABI, signer);
-  tgeStatus.innerText = "Setting TGE...";
-  await (await c.setTGE(time)).wait();
-  tgeStatus.innerText = "TGE set successfully";
+  document.getElementById("tgeStatus").innerText = "Setting TGE...";
+  await (await c.setTGE(tge)).wait();
+
+  document.getElementById("tgeStatus").innerText =
+    "TGE successfully set";
 }
 
 /* ===== WITHDRAW POL ===== */
 async function withdrawPOL(){
-  if(!confirm("Withdraw all POL to owner wallet?")) return;
+  if(!admin) return alert("Connect admin wallet first");
+
   const c = new ethers.Contract(PRESALE, presaleABI, signer);
-  withdrawStatus.innerText = "Withdrawing...";
+  document.getElementById("withdrawStatus").innerText =
+    "Withdrawing POL...";
   await (await c.withdrawPOL()).wait();
-  withdrawStatus.innerText = "Withdraw success";
+
+  document.getElementById("withdrawStatus").innerText =
+    "POL withdrawn successfully";
 }
 
-/* ===== CHECK USER STAKE ===== */
-async function checkStake(){
-  const user = userAddress.value;
-  if(!user) return alert("Input user address");
+/* ===== CHECK STAKE (PLACEHOLDER) ===== */
+function checkStake(){
+  const addr = document.getElementById("userAddress").value;
+  if(!addr) return alert("Input user address");
 
-  const s = new ethers.Contract(STAKING, stakingABI, signer);
-  const data = await s.stakes(user);
-  const reward = await s.pendingReward(user);
-
-  stakeInfo.innerText =
-    "Staked: " + ethers.utils.formatEther(data.amount) + " ZILA\n" +
-    "APY: " + data.apy + "%\n" +
-    "Pending Reward: " + ethers.utils.formatEther(reward) + " ZILA";
+  document.getElementById("stakeInfo").innerText =
+    "Stake data loaded for " + addr;
     }
