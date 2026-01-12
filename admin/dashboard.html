@@ -7,13 +7,25 @@
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
 <script defer src="./dashboardadmin.js"></script>
 </head>
+
 <body>
+<div class="bg-universe"></div>
 
-<h1>ZILA ADMIN PANEL</h1>
-<button onclick="connectAdmin()">CONNECT ADMIN</button>
-<button onclick="withdraw()">WITHDRAW POL</button>
+<div class="card">
+  <h2>ADMIN PANEL</h2>
+  <button class="btn" onclick="connectAdmin()">Connect Admin</button>
+  <div id="adminWallet" class="status"></div>
+</div>
 
-<div id="adminStatus"></div>
+<div class="card">
+  <h3>Presale Control</h3>
+  <button class="btn" onclick="withdraw()">Withdraw POL</button>
+</div>
+
+<div class="card">
+  <h3>Support Requests</h3>
+  <div id="supportList"></div>
+</div>
 
 </body>
 </html>
