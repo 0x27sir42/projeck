@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZILA DApp</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:
+    radial-gradient(circle at top,#1a2a6c,#0b0f14 65%),
+    linear-gradient(120deg,#00ff9c22,#000);
+  color:#fff;
+}
+.navbar{
+  position:fixed;top:0;width:100%;
+  background:rgba(10,15,20,.85);
+  backdrop-filter:blur(12px);
+  display:flex;align-items:center;
+  padding:14px 20px;
+  z-index:1000;
+}
+.navbar a{color:#fff;text-decoration:none;margin-right:20px}
+.navbar button{
+  margin-left:auto;
+  padding:10px 20px;
+  border:none;border-radius:20px;
+  background:#00ff9c;
+  font-weight:bold;
+}
+.container{
+  padding-top:130px;
+  max-width:560px;
+  margin:auto;
+}
+.card{
+  background:rgba(20,30,40,.75);
+  backdrop-filter:blur(16px);
+  border-radius:22px;
+  padding:30px;
+  margin-bottom:70px;
+  box-shadow:0 25px 60px rgba(0,0,0,.45);
+}
+input,select,button{
+  width:100%;
+  padding:14px;
+  margin-top:14px;
+  border-radius:14px;
+  border:none;
+}
+button.action{background:#00ff9c;font-weight:bold}
+.status{color:#00ff9c;font-size:13px;margin-top:10px}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+  <b>ZILA</b>
+  <a href="#presale">Presale</a>
+  <a href="#staking">Staking</a>
+  <a href="#claim">Claim</a>
+  <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+</div>
+
+<div class="container">
+
+<!-- PRESALE -->
+<div id="presale" class="card">
+<h2>Presale ZILA</h2>
+<p>Price: <b>0.000625 POL</b></p>
+<input id="buyAmount" placeholder="POL amount (min 10)">
+<button class="action" onclick="buyZila()">Buy ZILA</button>
+<button onclick="claimPresale()">Claim Presale</button>
+<div class="status" id="presaleStatus"></div>
+</div>
+
+<!-- STAKING -->
+<div id="staking" class="card">
+<h2>Stake ZILA</h2>
+<select id="plan">
+  <option value="0">Flexible</option>
+  <option value="1">5 Months</option>
+  <option value="2">1 Year</option>
+</select>
+<input id="stakeAmount" placeholder="ZILA amount">
+<button class="action" onclick="stakeZila()">Stake</button>
+<div class="status" id="stakeStatus"></div>
+</div>
+
+<!-- CLAIM -->
+<div id="claim" class="card">
+<h2>Claim Staking Reward</h2>
+<button class="action" onclick="claimStake()">Claim</button>
+</div>
+
+</div>
+
+<script>
+let provider, signer, user;
+
+// ===== ADDRESSES =====
+const ZILA_TOKEN="0xE54c126BfE1cdA9A347F2a35DFAc5a9ca155f9A9";
+const STAKING="0xef1CC2A23c0023093C545044d9f7154863715a27";
+const PRESALE="PASTE_PRESALE_ADDRESS";
+
+// ===== ABI =====
+const tokenABI=[
+ "function approve(address,uint256) external returns(bool)",
+ "function allowance(address,address) view returns(uint256)"
+];
+const stakingABI=[
+ "function stake(uint256,uint8) external",
+ "function claim() external"
+];
+const presaleABI=[
+ "function buy() payable",
+ "function claim() external"
+];
+
+// ===== CONNECT =====
+async function connectWallet(){
+ await ethereum.request({method:"eth_requestAccounts"});
+ await ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:"0x89"}]});
+ provider=new ethers.providers.Web3Provider(ethereum);
+ signer=provider.getSigner();
+ user=await signer.getAddress();
+ connectBtn.innerText=user.slice(0,4)+"***"+user.slice(-4)+" TERHUBUNG";
+}
+
+// ===== PRESALE =====
+async function buyZila(){
+ if(!user) return alert("Connect wallet");
+ const val=buyAmount.value;
+ if(val<10) return alert("Min 10 POL");
+ const c=new ethers.Contract(PRESALE,presaleABI,signer);
+ presaleStatus.innerText="Processing...";
+ await (await c.buy({value:ethers.utils.parseEther(val)})).wait();
+ presaleStatus.innerText="Buy success";
+}
+async function claimPresale(){
+ const c=new ethers.Contract(PRESALE,presaleABI,signer);
+ presaleStatus.innerText="Claiming...";
+ await (await c.claim()).wait();
+ presaleStatus.innerText="Claimed";
+}
+
+// ===== STAKING =====
+async function stakeZila(){
+ const amt=stakeAmount.value;
+ const plan=plan.value;
+ const token=new ethers.Contract(ZILA_TOKEN,tokenABI,signer);
+ const staking=new ethers.Contract(STAKING,stakingABI,signer);
+ const allow=await token.allowance(user,STAKING);
+ if(allow.lt(ethers.utils.parseEther(amt))){
+   await (await token.approve(STAKING,ethers.constants.MaxUint256)).wait();
+ }
+ stakeStatus.innerText="Staking...";
+ await (await staking.stake(ethers.utils.parseEther(amt),plan)).wait();
+ stakeStatus.innerText="Staked";
+}
+async function claimStake(){
+ const staking=new ethers.Contract(STAKING,stakingABI,signer);
+ await (await staking.claim()).wait();
+ alert("Reward claimed");
+}
+</script>
+
+</body>
+</html>
