@@ -8,54 +8,135 @@
 <link rel="stylesheet" href="./assets/css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
 
+<!-- CORE CONFIG -->
 <script defer src="./assets/js/config.js"></script>
 <script defer src="./assets/js/abi.js"></script>
 <script defer src="./assets/js/guard.js"></script>
-<script defer src="./assets/js/web3.js"></script>
 <script defer src="./assets/js/stats.js"></script>
 <script defer src="./assets/js/support.js"></script>
 <script defer src="./assets/js/ai.js"></script>
+
+<!-- WEBGL BACKGROUND -->
 <script defer src="./assets/webgl/blackcore.js"></script>
+
+<!-- WALLET CORE (LAST LOAD) -->
+<script defer src="./assets/js/web3.js"></script>
+
 </head>
 
 <body>
 
+<!-- 🌌 WEBGL CANVAS -->
 <canvas id="bg"></canvas>
 
+<!-- ===== NAVBAR ===== -->
 <div class="navbar">
   <b>ZILA</b>
   <a href="#presale">Presale</a>
   <a href="#staking">Staking</a>
   <a href="#ai">ZILA AI</a>
-  <button id="connectBtn" class="btn-connect" onclick="connectWallet()">Connect</button>
+
+  <!-- CONNECT BUTTON -->
+  <button id="connectBtn" class="btn-connect" onclick="connectWallet()">
+    Connect Wallet
+  </button>
 </div>
 
-<div id="walletHUD"></div>
+<!-- ===== WALLET HUD ===== -->
+<div id="walletHUD" class="wallet-hud">
+  <span id="walletStatus">🔴 Not Connected</span>
+</div>
 
+<!-- ===== MAIN ===== -->
 <div class="container">
 
-<div class="card" id="presale">
-<h2>🔥 ZILA PRESALE</h2>
-<div id="stats" class="status"></div>
-<input id="buyAmount" placeholder="POL amount (min 10)">
-<button class="btn" onclick="buyZila()">Buy ZILA</button>
+  <!-- PRESALE -->
+  <div class="card" id="presale">
+    <h2>🔥 ZILA PRESALE</h2>
+
+    <div id="stats" class="status">Loading presale stats...</div>
+
+    <input id="buyAmount" placeholder="POL amount (min 10)">
+    <button class="btn" onclick="buyZila()">Buy ZILA</button>
+
+    <div id="presaleStatus" class="status"></div>
+  </div>
+
+  <!-- SUPPORT -->
+  <div class="card">
+    <h3>📩 Support</h3>
+
+    <textarea id="supportMsg" placeholder="Write your message to admin"></textarea>
+    <button class="btn" onclick="sendSupport()">Send Support</button>
+
+    <div id="supportStatus" class="status"></div>
+    <div id="adminReply" class="status"></div>
+  </div>
+
+  <!-- AI -->
+  <div class="card" id="ai">
+    <h3>🤖 ZILA AI</h3>
+
+    <input id="aiInput" placeholder="Ask ZILA AI">
+    <button class="btn" onclick="zilaAI()">Ask</button>
+
+    <div id="aiOutput" class="status"></div>
+  </div>
+
 </div>
 
-<div class="card">
-<h3>📩 Support</h3>
-<textarea id="supportMsg" placeholder="Write your message"></textarea>
-<button class="btn" onclick="sendSupport()">Send</button>
-<div id="supportStatus" class="status"></div>
-</div>
+<!-- =========================
+     🔥 DEBUG + WALLET CORE
+========================= -->
+<script>
+/* ===== DEBUG MODE ===== */
+const DEBUG = true;
+function log(...a){ if(DEBUG) console.log("🟢 DEBUG:",...a); }
+function err(...a){ console.error("🔴 ERROR:",...a); }
 
-<div class="card" id="ai">
-<h3>🤖 ZILA AI</h3>
-<input id="aiInput" placeholder="Ask ZILA AI">
-<button class="btn" onclick="zilaAI()">Ask</button>
-<div id="aiOutput" class="status"></div>
-</div>
+let provider, signer, user;
 
-</div>
+/* ===== CONNECT WALLET ===== */
+async function connectWallet(){
+  log("Connect button pressed");
+
+  if(typeof window.ethereum === "undefined"){
+    alert("❌ Wallet not detected. Open via MetaMask / Trust / OKX Browser");
+    err("window.ethereum missing");
+    return;
+  }
+
+  try{
+    const accounts = await ethereum.request({ method:"eth_requestAccounts" });
+    if(!accounts || !accounts.length) return;
+
+    await ethereum.request({
+      method:"wallet_switchEthereumChain",
+      params:[{ chainId:"0x89" }]
+    });
+
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+    user = await signer.getAddress();
+
+    log("Connected:", user);
+
+    // UI UPDATE
+    document.getElementById("connectBtn").innerText =
+      user.slice(0,6)+"..."+user.slice(-4);
+
+    document.getElementById("walletStatus").innerHTML =
+      "🟢 Connected<br><b>"+user+"</b>";
+
+    // AUTO LOAD STATS
+    if(typeof loadStats === "function") loadStats();
+
+  }catch(e){
+    err("Connect failed", e);
+    alert("❌ Wallet connection failed. Check console.");
+  }
+}
+</script>
 
 </body>
 </html>
