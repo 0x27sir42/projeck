@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>ZILA DApp</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
 
 <style>
@@ -73,7 +74,7 @@ button.action{background:#00ff9c;font-weight:bold}
 <h2>Presale ZILA</h2>
 <p>Price: <b>0.000625 POL</b></p>
 <input id="buyAmount" placeholder="POL amount (min 10)">
-<button class="action" onclick="buyZila()">Buy ZILA</button>
+<button class="action" onclick="buyPresale()">Buy ZILA</button>
 <button onclick="claimPresale()">Claim Presale</button>
 <div class="status" id="presaleStatus"></div>
 </div>
@@ -81,7 +82,7 @@ button.action{background:#00ff9c;font-weight:bold}
 <!-- STAKING -->
 <div id="staking" class="card">
 <h2>Stake ZILA</h2>
-<select id="plan">
+<select id="stakePlan">
   <option value="0">Flexible</option>
   <option value="1">5 Months</option>
   <option value="2">1 Year</option>
@@ -100,72 +101,90 @@ button.action{background:#00ff9c;font-weight:bold}
 </div>
 
 <script>
-let provider, signer, user;
+/* ================= FIXED ADDRESSES ================= */
+const PRESALE_ADDRESS = "0x72cF8781aa3A6D7FD3324CD0dAA8b858461849d7";
+const ZILA_TOKEN = "0xE54c126BfE1cdA9A347F2a35DFAc5a9ca155f9A9";
+const STAKING = "0xef1CC2A23c0023093C545044d9f7154863715a27";
 
-// ===== ADDRESSES =====
-const ZILA_TOKEN="0xE54c126BfE1cdA9A347F2a35DFAc5a9ca155f9A9";
-const STAKING="0xef1CC2A23c0023093C545044d9f7154863715a27";
-const PRESALE="PASTE_PRESALE_ADDRESS";
-
-// ===== ABI =====
-const tokenABI=[
- "function approve(address,uint256) external returns(bool)",
+/* ================= ABI ================= */
+const presaleABI = [
+ "function buy() payable",
+ "function claim()"
+];
+const tokenABI = [
+ "function approve(address,uint256) returns(bool)",
  "function allowance(address,address) view returns(uint256)"
 ];
-const stakingABI=[
- "function stake(uint256,uint8) external",
- "function claim() external"
-];
-const presaleABI=[
- "function buy() payable",
- "function claim() external"
+const stakingABI = [
+ "function stake(uint256,uint8)",
+ "function claim()"
 ];
 
-// ===== CONNECT =====
+let provider, signer, user;
+
+/* ================= CONNECT ================= */
 async function connectWallet(){
- await ethereum.request({method:"eth_requestAccounts"});
- await ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:"0x89"}]});
- provider=new ethers.providers.Web3Provider(ethereum);
- signer=provider.getSigner();
- user=await signer.getAddress();
- connectBtn.innerText=user.slice(0,4)+"***"+user.slice(-4)+" TERHUBUNG";
+  if(!window.ethereum) return alert("Install wallet");
+  await ethereum.request({method:"eth_requestAccounts"});
+  await ethereum.request({
+    method:"wallet_switchEthereumChain",
+    params:[{chainId:"0x89"}]
+  });
+
+  provider = new ethers.providers.Web3Provider(ethereum);
+  signer = provider.getSigner();
+  user = await signer.getAddress();
+
+  connectBtn.innerText =
+    user.slice(0,4) + "***" + user.slice(-4) + " TERHUBUNG";
 }
 
-// ===== PRESALE =====
-async function buyZila(){
- if(!user) return alert("Connect wallet");
- const val=buyAmount.value;
- if(val<10) return alert("Min 10 POL");
- const c=new ethers.Contract(PRESALE,presaleABI,signer);
- presaleStatus.innerText="Processing...";
- await (await c.buy({value:ethers.utils.parseEther(val)})).wait();
- presaleStatus.innerText="Buy success";
+/* ================= PRESALE ================= */
+async function buyPresale(){
+  if(!signer) return alert("Connect wallet");
+  const val = buyAmount.value;
+  if(val < 10) return alert("Min 10 POL");
+
+  const c = new ethers.Contract(PRESALE_ADDRESS, presaleABI, signer);
+  presaleStatus.innerText = "Processing buy...";
+  await (await c.buy({value:ethers.utils.parseEther(val)})).wait();
+  presaleStatus.innerText = "Buy success";
 }
+
 async function claimPresale(){
- const c=new ethers.Contract(PRESALE,presaleABI,signer);
- presaleStatus.innerText="Claiming...";
- await (await c.claim()).wait();
- presaleStatus.innerText="Claimed";
+  const c = new ethers.Contract(PRESALE_ADDRESS, presaleABI, signer);
+  presaleStatus.innerText = "Claiming...";
+  await (await c.claim()).wait();
+  presaleStatus.innerText = "Claimed";
 }
 
-// ===== STAKING =====
+/* ================= STAKING ================= */
 async function stakeZila(){
- const amt=stakeAmount.value;
- const plan=plan.value;
- const token=new ethers.Contract(ZILA_TOKEN,tokenABI,signer);
- const staking=new ethers.Contract(STAKING,stakingABI,signer);
- const allow=await token.allowance(user,STAKING);
- if(allow.lt(ethers.utils.parseEther(amt))){
-   await (await token.approve(STAKING,ethers.constants.MaxUint256)).wait();
- }
- stakeStatus.innerText="Staking...";
- await (await staking.stake(ethers.utils.parseEther(amt),plan)).wait();
- stakeStatus.innerText="Staked";
+  const amt = stakeAmount.value;
+  const plan = stakePlan.value;
+  const token = new ethers.Contract(ZILA_TOKEN, tokenABI, signer);
+  const staking = new ethers.Contract(STAKING, stakingABI, signer);
+
+  const allow = await token.allowance(user, STAKING);
+  if(allow.lt(ethers.utils.parseEther(amt))){
+    await (await token.approve(
+      STAKING,
+      ethers.constants.MaxUint256
+    )).wait();
+  }
+
+  stakeStatus.innerText = "Staking...";
+  await (await staking.stake(
+    ethers.utils.parseEther(amt),
+    plan
+  )).wait();
+  stakeStatus.innerText = "Staked";
 }
+
 async function claimStake(){
- const staking=new ethers.Contract(STAKING,stakingABI,signer);
- await (await staking.claim()).wait();
- alert("Reward claimed");
+  const staking = new ethers.Contract(STAKING, stakingABI, signer);
+  await (await staking.claim()).wait();
+  alert("Reward claimed");
 }
 </script>
 
