@@ -2,315 +2,48 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ZILA Presale | ZILA AI</title>
+<title>ZILA Presale</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<link rel="stylesheet" href="./assets/css/style.css">
+
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-
-<style>
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  color:#fff;
-  background:#05080f;
-  overflow-x:hidden;
-}
-
-/* ===== 3D ANIMATED BACKGROUND ===== */
-.bg3d{
-  position:fixed;
-  inset:0;
-  z-index:-1;
-  background:
-    radial-gradient(circle at 20% 20%,#00ff9c33,transparent 40%),
-    radial-gradient(circle at 80% 30%,#1a2a6c55,transparent 45%),
-    linear-gradient(120deg,#020617,#020617);
-  animation:bgmove 20s infinite alternate ease-in-out;
-}
-@keyframes bgmove{
-  0%{filter:hue-rotate(0deg)}
-  100%{filter:hue-rotate(25deg)}
-}
-
-/* ===== NAVBAR ===== */
-.navbar{
-  position:fixed;
-  top:0;
-  width:100%;
-  padding:14px 22px;
-  display:flex;
-  align-items:center;
-  backdrop-filter:blur(14px);
-  background:rgba(10,15,25,.75);
-  z-index:1000;
-}
-.navbar b{font-size:18px}
-.navbar a{
-  margin-left:18px;
-  color:#fff;
-  text-decoration:none;
-  font-size:14px;
-}
-
-/* ===== CONNECT BUTTON 3D ===== */
-.connect-btn{
-  margin-left:auto;
-  padding:12px 26px;
-  border:none;
-  border-radius:26px;
-  font-weight:bold;
-  cursor:pointer;
-  color:#000;
-  background:linear-gradient(135deg,#00ff9c,#00c6ff);
-  box-shadow:0 10px 30px rgba(0,255,156,.45);
-  transition:.25s ease;
-}
-.connect-btn:hover{
-  transform:translateY(-3px) scale(1.03);
-  box-shadow:0 18px 50px rgba(0,255,156,.7);
-}
-.connect-btn.connected{
-  background:linear-gradient(135deg,#22ff88,#00ffcc);
-}
-
-/* ===== LAYOUT ===== */
-.container{
-  padding-top:120px;
-  max-width:760px;
-  margin:auto;
-  padding-left:16px;
-  padding-right:16px;
-}
-.card{
-  background:rgba(20,30,45,.85);
-  backdrop-filter:blur(18px);
-  border-radius:28px;
-  padding:36px;
-  margin-bottom:70px;
-  box-shadow:0 35px 90px rgba(0,0,0,.65);
-}
-
-/* ===== HERO IMAGE ===== */
-.hero-img{
-  width:100%;
-  height:240px;
-  border-radius:24px;
-  background:url("https://images.unsplash.com/photo-1640340434855-6084b1f4901c") center/cover;
-  margin-bottom:26px;
-}
-
-.section-img{
-  width:100%;
-  height:220px;
-  border-radius:24px;
-  background-size:cover;
-  background-position:center;
-  margin-bottom:24px;
-}
-
-/* ===== FORM ===== */
-input,select,button.action{
-  width:100%;
-  padding:14px;
-  margin-top:14px;
-  border-radius:16px;
-  border:none;
-}
-button.action{
-  background:#00ff9c;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-/* ===== WALLET INFO ===== */
-.wallet-box{
-  margin-top:20px;
-  padding:18px;
-  border-radius:18px;
-  background:rgba(0,0,0,.35);
-  border:1px solid rgba(0,255,156,.25);
-  font-size:13px;
-}
-.wallet-box span{
-  display:block;
-  margin-top:6px;
-  word-break:break-all;
-  color:#00ff9c;
-}
-
-.status{
-  margin-top:12px;
-  font-size:13px;
-  color:#00ff9c;
-}
-</style>
+<script src="./assets/js/config.js"></script>
+<script src="./assets/js/abi.js"></script>
+<script src="./assets/js/web3.js"></script>
 </head>
 
 <body>
 
 <div class="bg3d"></div>
 
-<!-- NAVBAR -->
-<div class="navbar">
+<nav class="navbar">
   <b>ZILA</b>
-  <a href="#presale">Presale</a>
-  <a href="#staking">Staking</a>
-  <a href="#zilaai">ZILA AI</a>
-  <button id="connectBtn" class="connect-btn" onclick="connectWallet()">
-    Connect Wallet
-  </button>
-</div>
+  <button id="connectBtn" class="connect-btn" onclick="connectWallet()">CONNECT WALLET</button>
+</nav>
 
-<div class="container">
+<section class="card">
+  <h1>ZILA PRESALE</h1>
+  <p>10% TGE • 90% Vesting</p>
 
-<!-- HERO -->
-<div class="card">
-  <div class="hero-img"></div>
-  <h1>ZILA Presale</h1>
-  <p>
-    ZILA is a next-generation blockchain ecosystem combining
-    <b>staking, AI infrastructure, and long-term token utility</b>.
-  </p>
+  <input id="buyAmount" placeholder="POL amount">
+  <button onclick="buyZila()">BUY ZILA</button>
+  <button onclick="claimPresale()">CLAIM</button>
 
-  <!-- WALLET INFO DISPLAY -->
-  <div id="walletBox" class="wallet-box" style="display:none">
-    <b>Connected Wallet</b>
-    <span id="walletAddress"></span>
-    <span id="walletSignature"></span>
-  </div>
-</div>
+  <div id="presaleStatus"></div>
+</section>
 
-<!-- PRESALE -->
-<div id="presale" class="card">
-  <div class="section-img" style="background-image:url('https://images.unsplash.com/photo-1621504450181-5d356f61d307')"></div>
-
-  <h2>Presale ZILA – X10 Potential</h2>
-
-  <p>
-    🔹 Presale Price: <b>0.000625 POL / ZILA</b><br>
-    🔹 Listing Price: <b>0.0065 POL / ZILA</b><br>
-    🔹 Potential: <b>10×</b>
-  </p>
-
-  <p>
-    • 10% unlocked at TGE<br>
-    • 90% vested automatically
-  </p>
-
-  <input id="buyAmount" placeholder="POL amount (min 10)">
-  <button class="action" onclick="buyZila()">Buy ZILA</button>
-  <button class="action" onclick="claimPresale()">Claim Presale</button>
-
-  <div class="status" id="presaleStatus"></div>
-</div>
-
-<!-- STAKING -->
-<div id="staking" class="card">
-  <div class="section-img" style="background-image:url('https://images.unsplash.com/photo-1639322537138-5e513100b36e')"></div>
-
-  <h2>Stake ZILA</h2>
-
+<section class="card">
+  <h2>STAKING</h2>
+  <input id="stakeAmount" placeholder="ZILA amount">
   <select id="plan">
     <option value="0">Flexible</option>
     <option value="1">5 Months</option>
     <option value="2">1 Year</option>
   </select>
-
-  <input id="stakeAmount" placeholder="ZILA amount">
-  <button class="action" onclick="stakeZila()">Stake</button>
-
-  <div class="status" id="stakeStatus"></div>
-</div>
-
-<!-- ZILA AI -->
-<div id="zilaai" class="card">
-  <div class="section-img" style="background-image:url('https://images.unsplash.com/photo-1677442136019-21780ecad995')"></div>
-
-  <h2>ZILA AI</h2>
-
-  <p>
-    ZILA AI is an advanced decentralized AI layer designed to support
-    on-chain automation, predictive analytics, and AI-powered dApps.
-  </p>
-</div>
-
-</div>
-
-<script>
-let provider, signer, user;
-
-/* ===== ADDRESSES ===== */
-const PRESALE="0x72cF8781aa3A6D7FD3324CD0dAA8b858461849d7";
-const ZILA_TOKEN="0xE54c126BfE1cdA9A347F2a35DFAc5a9ca155f9A9";
-const STAKING="0xef1CC2A23c0023093C545044d9f7154863715a27";
-
-/* ===== ABI ===== */
-const presaleABI=["function buy() payable","function claim()"];
-const tokenABI=["function approve(address,uint256)","function allowance(address,address) view returns(uint256)"];
-const stakingABI=["function stake(uint256,uint8)"];
-
-/* ===== CONNECT WALLET (STABLE + SIGN) ===== */
-async function connectWallet(){
-  if(!window.ethereum){
-    alert("Wallet not detected");
-    return;
-  }
-
-  try{
-    const accounts = await ethereum.request({method:"eth_requestAccounts"});
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    signer = provider.getSigner();
-    user = accounts[0];
-
-    // SIGN MESSAGE
-    const msg = "ZILA USER AUTHENTICATION";
-    const sig = await signer.signMessage(msg);
-
-    connectBtn.innerText = user.slice(0,6)+"..."+user.slice(-4);
-    connectBtn.classList.add("connected");
-
-    walletBox.style.display="block";
-    walletAddress.innerText="Address: "+user;
-    walletSignature.innerText="Signature: "+sig.slice(0,40)+"...";
-
-  }catch(err){
-    alert("Wallet connection rejected");
-  }
-}
-
-/* ===== PRESALE ===== */
-async function buyZila(){
-  if(!user) return alert("Connect wallet first");
-  const val=buyAmount.value;
-  if(val<10) return alert("Minimum 10 POL");
-  const c=new ethers.Contract(PRESALE,presaleABI,signer);
-  presaleStatus.innerText="Processing...";
-  await (await c.buy({value:ethers.utils.parseEther(val)})).wait();
-  presaleStatus.innerText="Buy success";
-}
-async function claimPresale(){
-  const c=new ethers.Contract(PRESALE,presaleABI,signer);
-  presaleStatus.innerText="Claiming...";
-  await (await c.claim()).wait();
-  presaleStatus.innerText="Claimed";
-}
-
-/* ===== STAKING ===== */
-async function stakeZila(){
-  const amt=stakeAmount.value;
-  const p=plan.value;
-  const token=new ethers.Contract(ZILA_TOKEN,tokenABI,signer);
-  const staking=new ethers.Contract(STAKING,stakingABI,signer);
-  const allow=await token.allowance(user,STAKING);
-  if(allow.lt(ethers.utils.parseEther(amt))){
-    await (await token.approve(STAKING,ethers.constants.MaxUint256)).wait();
-  }
-  stakeStatus.innerText="Staking...";
-  await (await staking.stake(ethers.utils.parseEther(amt),p)).wait();
-  stakeStatus.innerText="Staked";
-}
-</script>
+  <button onclick="stakeZila()">STAKE</button>
+  <div id="stakeStatus"></div>
+</section>
 
 </body>
 </html>
