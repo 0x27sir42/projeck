@@ -1,1 +1,6 @@
-const PRESALE_ADDRESS="0x72cF8781aa3A6D7FD3324CD0dAA8b858461849d7";
+const presaleABI=[
+ "function buy() payable",
+ "function claim()",
+ "function totalRaised() view returns(uint256)",
+ "function totalBuyers() view returns(uint256)"
+];
