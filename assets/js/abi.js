@@ -1,13 +1,1 @@
-const presaleABI=[
- "function buy() payable",
- "function claim()"
-];
-
-const tokenABI=[
- "function approve(address,uint256)",
- "function allowance(address,address) view returns(uint256)"
-];
-
-const stakingABI=[
- "function stake(uint256,uint8)"
-];
+const PRESALE_ADDRESS="0x72cF8781aa3A6D7FD3324CD0dAA8b858461849d7";
