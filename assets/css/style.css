@@ -1,45 +1,64 @@
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:Arial;
+  font-family:Arial,Helvetica,sans-serif;
   background:#05080f;
   color:#fff;
+  overflow-x:hidden;
 }
 
-.bg3d{
+/* === BLACK HOLE 3D BACKGROUND === */
+.bg-universe{
   position:fixed;
   inset:0;
-  background:radial-gradient(circle,#00ff9c33,transparent);
   z-index:-1;
+  background:
+    radial-gradient(circle at center,#000 0%,#020617 35%,#000 70%),
+    radial-gradient(circle at 20% 30%,#1a2a6c55,transparent 40%),
+    radial-gradient(circle at 80% 70%,#00ff9c44,transparent 45%);
+  animation:spaceMove 25s linear infinite;
+}
+@keyframes spaceMove{
+  0%{transform:rotate(0deg) scale(1)}
+  100%{transform:rotate(360deg) scale(1.1)}
 }
 
-.navbar{
-  padding:20px;
-  display:flex;
-  justify-content:space-between;
-}
-
-.connect-btn{
-  padding:12px 26px;
-  border-radius:30px;
+/* === BUTTON 3D === */
+.btn{
+  padding:10px 18px;
+  border-radius:18px;
   border:none;
-  background:linear-gradient(145deg,#00ff9c,#00cfff);
+  font-size:13px;
   font-weight:bold;
   cursor:pointer;
-  box-shadow:0 0 20px #00ff9c;
+  background:linear-gradient(145deg,#00ff9c,#00c2ff);
+  box-shadow:0 8px 20px rgba(0,255,156,.35);
+  transition:.3s;
+}
+.btn:hover{
+  transform:translateY(-2px) scale(1.03);
+  box-shadow:0 12px 30px rgba(0,255,156,.6);
 }
 
 .card{
+  max-width:480px;
   margin:40px auto;
-  padding:30px;
-  max-width:420px;
-  background:rgba(20,30,45,.9);
-  border-radius:24px;
+  padding:28px;
+  background:rgba(15,25,40,.85);
+  border-radius:22px;
+  backdrop-filter:blur(16px);
 }
-input,select,button{
+
+input,textarea,select{
   width:100%;
-  margin-top:12px;
   padding:12px;
+  margin-top:10px;
   border-radius:12px;
   border:none;
+}
+
+.status{
+  font-size:12px;
+  margin-top:10px;
+  color:#00ff9c;
 }
