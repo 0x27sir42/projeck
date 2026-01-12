@@ -1,38 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ZILA Presale</title>
+<title>ZILA | Presale • Staking • AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link rel="stylesheet" href="./assets/css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-<script src="./assets/js/config.js"></script>
-<script src="./assets/js/abi.js"></script>
-<script src="./assets/js/web3.js"></script>
+
+<script defer src="./assets/js/config.js"></script>
+<script defer src="./assets/js/abi.js"></script>
+<script defer src="./assets/js/guard.js"></script>
+<script defer src="./assets/js/web3.js"></script>
+<script defer src="./assets/js/stats.js"></script>
+<script defer src="./assets/js/support.js"></script>
+<script defer src="./assets/js/ai.js"></script>
+<script defer src="./assets/webgl/blackcore.js"></script>
 </head>
 
 <body>
-<div class="bg-universe"></div>
 
-<div class="card">
-  <h2>ZILA PRESALE</h2>
+<canvas id="bg"></canvas>
 
-  <button id="connectBtn" class="btn" onclick="connectWallet()">Connect Wallet</button>
-  <div class="status" id="walletInfo"></div>
+<div class="navbar">
+  <b>ZILA</b>
+  <a href="#presale">Presale</a>
+  <a href="#staking">Staking</a>
+  <a href="#ai">ZILA AI</a>
+  <button id="connectBtn" class="btn-connect" onclick="connectWallet()">Connect</button>
+</div>
 
-  <input id="buyAmount" placeholder="POL amount">
-  <button class="btn" onclick="buyZila()">Buy ZILA</button>
-  <button class="btn" onclick="claimPresale()">Claim</button>
+<div id="walletHUD"></div>
 
-  <div class="status" id="presaleStatus"></div>
+<div class="container">
+
+<div class="card" id="presale">
+<h2>🔥 ZILA PRESALE</h2>
+<div id="stats" class="status"></div>
+<input id="buyAmount" placeholder="POL amount (min 10)">
+<button class="btn" onclick="buyZila()">Buy ZILA</button>
 </div>
 
 <div class="card">
-  <h3>Support / Help</h3>
-  <textarea id="supportMsg" placeholder="Describe your problem..."></textarea>
-  <button class="btn" onclick="sendSupport()">Send to Admin</button>
-  <div class="status" id="supportStatus"></div>
+<h3>📩 Support</h3>
+<textarea id="supportMsg" placeholder="Write your message"></textarea>
+<button class="btn" onclick="sendSupport()">Send</button>
+<div id="supportStatus" class="status"></div>
+</div>
+
+<div class="card" id="ai">
+<h3>🤖 ZILA AI</h3>
+<input id="aiInput" placeholder="Ask ZILA AI">
+<button class="btn" onclick="zilaAI()">Ask</button>
+<div id="aiOutput" class="status"></div>
+</div>
+
 </div>
 
 </body>
