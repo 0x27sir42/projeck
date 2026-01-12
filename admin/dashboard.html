@@ -15,86 +15,47 @@ body{
   background:radial-gradient(circle at top,#1a2a6c,#05080f 65%);
   color:#fff;
 }
+
+/* HEADER */
 .header{
-  padding:20px;
+  padding:22px;
   text-align:center;
-  font-size:20px;
+  font-size:22px;
   font-weight:bold;
   background:rgba(0,0,0,.6);
-  backdrop-filter:blur(10px);
+  backdrop-filter:blur(12px);
 }
+
+/* LAYOUT */
 .container{
-  max-width:720px;
+  max-width:760px;
   margin:auto;
   padding:30px 16px;
 }
 .card{
-  background:rgba(20,30,45,.85);
-  backdrop-filter:blur(14px);
-  border-radius:22px;
-  padding:28px;
-  margin-bottom:30px;
-  box-shadow:0 20px 50px rgba(0,0,0,.5);
+  background:rgba(20,30,45,.9);
+  backdrop-filter:blur(16px);
+  border-radius:26px;
+  padding:30px;
+  margin-bottom:34px;
+  box-shadow:0 30px 70px rgba(0,0,0,.6);
 }
-button{
+
+/* 3D BUTTON */
+.btn3d{
   width:100%;
-  padding:14px;
-  margin-top:14px;
+  padding:16px;
+  margin-top:16px;
   border:none;
-  border-radius:14px;
-  background:#00ff9c;
+  border-radius:18px;
+  background:linear-gradient(135deg,#00ff9c,#00c6ff);
+  color:#000;
   font-weight:bold;
+  font-size:15px;
   cursor:pointer;
+  box-shadow:0 10px 30px rgba(0,255,156,.4);
+  transition:all .25s ease;
 }
-input{
-  width:100%;
-  padding:14px;
-  margin-top:14px;
-  border-radius:14px;
-  border:none;
-}
-.status{
-  margin-top:10px;
-  font-size:13px;
-  color:#00ff9c;
-}
-.danger{background:#ff4d4d}
-</style>
-</head>
-
-<body>
-
-<div class="header">🔐 ZILA ADMIN DASHBOARD</div>
-
-<div class="container">
-
-<div class="card">
-  <h3>Admin Wallet</h3>
-  <button onclick="connectAdmin()">Connect Owner Wallet</button>
-  <div class="status" id="adminStatus"></div>
-</div>
-
-<div class="card">
-  <h3>Presale Control</h3>
-  <button onclick="loadPresaleStats()">Load Presale Stats</button>
-  <div class="status" id="presaleStats"></div>
-
-  <input id="tgeInput" placeholder="Set TGE (unix timestamp)">
-  <button onclick="setTGE()">Set TGE</button>
-  <div class="status" id="tgeStatus"></div>
-
-  <button class="danger" onclick="withdrawPOL()">Withdraw All POL</button>
-  <div class="status" id="withdrawStatus"></div>
-</div>
-
-<div class="card">
-  <h3>Staking Monitor</h3>
-  <input id="userAddress" placeholder="User wallet address">
-  <button onclick="checkStake()">Check User Stake</button>
-  <div class="status" id="stakeInfo"></div>
-</div>
-
-</div>
-
-</body>
-</html>
+.btn3d:hover{
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:0 20px 50px rgba(0,255,156,.6
