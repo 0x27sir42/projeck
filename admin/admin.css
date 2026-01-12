@@ -1,1 +1,17 @@
-@import url("../assets/css/style.css");
+body{background:#000;color:#0f0;font-family:Arial}
+.card{
+ background:#111;
+ padding:20px;
+ border-radius:12px;
+}
+.msg{
+ border-bottom:1px solid #333;
+ padding:8px;
+}
+button{
+ margin-top:6px;
+ background:red;
+ color:#fff;
+ border:none;
+ padding:6px 10px;
+}
